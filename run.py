@@ -23,30 +23,33 @@ def main(targets):
     if 'data' in targets:
         HW1.main()
     if 'test-project' in targets:
-
+ 
         test_flag = 1
         sample_size, categories = HW2.loadConfig("config/test-params.json")
-        #HW2.getTestData(categories, sample_size)
+        paths = HW2.loadEnv("config/env.json")
+        HW2.getTestData(categories, sample_size)
         smalis = HW2.prepare_data(test_flag)
         df, xy  = HW2.makeDF(smalis)
-        #train_df, train_y, test_df, test_y = HW2.splitTrain(df, xy)
+        train_df, train_y, test_df, test_y = HW2.splitTrain(df, xy)
+        len(train_y)
+        A_train = HW2.makeA(train_df, train_df["apps"].unique(), df.shape[0])
+        P_train = HW2.makeP(train_df, df.shape[0])
 
-        A_train = HW2.makeA(df, xy, df.shape[0])
-        P_train = HW2.makeP(df, df.shape[0])
+        A_test = HW2.makeA(test_df, test_df["apps"].unique(), df.shape[0])
+        P_test = HW2.makeP(test_df, df.shape[0])
 
-        #A_test = HW2.makeA(test_df, xy, df.shape[0])
-        #P_test = HW2.makeP(test_df, df.shape[0])
-
-        y = [i[1] for i in xy]
+        #y = [i[1] for i in xy]
         AAT_train = A_train.dot(A_train.T)#HW2.matrixply([A_train, A_train.T])
-        clf = HW2.trainModel(AAT_train, y)
-        preds = HW2.modelPredict(clf, AAT_train)
-        HW2.getMetrics(y, preds)
+        AATest = A_test.dot(A_train.T)
+        clf = HW2.trainModel(AAT_train, train_y)
+        preds = HW2.modelPredict(clf, AATest)
+        HW2.getMetrics(preds,test_y, paths["AA^T"], "AA^T")
 
         APAT_train = A_train.dot(P_train).dot(A_train.T)
-        clf = HW2.trainModel(APAT_train, y)
-        preds = HW2.modelPredict(clf, APAT_train)
-        HW2.getMetrics(y, preds)
+        APATest = A_test.dot(P_test).dot(A_train.T)
+        clf = HW2.trainModel(APAT_train, train_y)
+        preds = HW2.modelPredict(clf, APATest)
+        HW2.getMetrics(preds, test_y, paths["APA^T"], "APA^T")
 
 
 

@@ -11,9 +11,8 @@ import pandas as pd
 import json
 import scipy.sparse as sp
 import numpy as np
+import sklearn.model_selection as model_selection
 
-#this assigment is my greatest regret and failure of this year and maybe more
-#words cannot describe how much shame I feel 
 
 def getAllSmaliFiles(dirName):
     # create a list of file and sub directories 
@@ -40,7 +39,6 @@ def prepare_data(test_flag):
 
 def makeDF(smalis):
     api_features = {}
-    api_counter = 0
 
     counter = 0
 
@@ -84,9 +82,8 @@ def makeDF(smalis):
                             if lib not in library:
                                 library[lib] = lib_counter
                                 lib_counter+=1
-                            api_features[api] = {"number": api_counter, 
-                            "apps": [], "blocks": [], "library": library[lib]}
-                            api_counter +=1
+                            api_features[api] = { "apps": [], "blocks": [], "library": library[lib]}
+                            
                         if all_apps[app_name] not in api_features[api]["apps"]:
                             api_features[api]["apps"].append(all_apps[app_name])
                         if block_counter not in api_features[api]["blocks"]:
@@ -96,55 +93,48 @@ def makeDF(smalis):
         if[all_apps[app_name], genre[genre_name]] not in app_genre:
             app_genre.append([all_apps[app_name], genre[genre_name]])
     df = pd.DataFrame(api_features).T
-    #df = df[df.apps.map(len) > 1]
+    df = df[df.apps.map(len) > 1]
+    df = df.reset_index(drop = False).rename(columns = {"index": "api"})
+    df = df.reset_index(drop = False).rename(columns = {"index": "number"})
     return df, app_genre
 
 def splitTrain(df, app_genre):
-    split = 0
-    if len(app_genre) >= 10:
-        split = len(app_genre)/10
-    else:
-        split = 2
-    train = app_genre[split: -1 * split]
-    test = app_genre[:split] + app_genre[-1 * split:]
-    
-    train_x = [i[0] for i in train]
-    train_y = [i[1] for i in train]
+    X = [i[0] for i in app_genre]
+    y = [i[1] for i in app_genre]
 
-    test_x = [i[0] for i in test]
-    test_y = [i[1] for i in test]
+    X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y,
+    train_size=0.9, test_size=0.1,
+    random_state = 0)
 
     exploded = df.explode("apps")
-    train_df = exploded.loc[exploded["apps"].isin(train_x)]
-    test_df = exploded.loc[exploded["apps"].isin(test_x)]
-    return train_df, train_y, test_df, test_y
+    train_df = exploded.loc[exploded["apps"].isin(X_train)]
+    test_df = exploded.loc[exploded["apps"].isin(X_test)]
+    return train_df, y_train, test_df, y_test
 
-def makeA(df):
-    api_apps = df[["number", "apps"]]
-    api_apps = api_apps.explode("apps")
-    all_apps = api_apps["apps"].unique()
-    A = sp.csr_matrix((len(all_apps), df.shape[0]), dtype = np.int8)
-    for i in all_apps:
-        A[i, api_apps.loc[api_apps["apps"] == i]["number"]] = 1
+def makeA(df, app_list, num_apis):
+    #api_apps = df[["number", "apps"]]
+    #api_apps = df.explode("apps")
+    mapper = {}
+    counter = 0
+    for i in app_list:
+        mapper[i] = counter
+        counter+=1
+    A = sp.csr_matrix((len(app_list), num_apis), dtype = np.int8)
+    for i in app_list:
+        A[mapper[i], df.loc[df["apps"] == i]["number"]] = 1
     return A
 
-def makeP(df):
-    P = sp.csr_matrix((df.shape[0], df.shape[0]), dtype = np.int8)
+def makeP(df, num_apis):
+    P = sp.csr_matrix((num_apis, num_apis), dtype = np.int8)
     for i in df["library"].unique():
-        mates = df.loc[df["library"] == i]["number"]
+        mates = df.loc[df["library"] == i].index
         P[mates, mates] = 1
     return P
-
-def matrixply(lst):
-    prev = 1
-    while lst:
-        curr = lst.pop()
-        prev = curr * prev
-    return prev
 
 def trainModel(matrix, y):
     mat = matrix.todense()
     clf = svm.SVC(kernel = 'precomputed')
+
     clf.fit(mat, y)
     return clf
 
@@ -152,12 +142,23 @@ def modelPredict(model, matrix):
     mat = matrix.todense()
     return model.predict(mat)
 
-def getMetrics(predictions, y): 
+def getMetrics(predictions, y, path, name): 
      cm = metrics.confusion_matrix(y, predictions)
-     print("TN: ", cm[0][0])
-     print("FN: ", cm[1][0])
-     print("TP: ", cm[1][1])
-     print("CM: ", cm[0][1])
+
+     f = open(path, 'w')
+     f.write("results to " + name + ": \n") 
+     f.write("TN: " + str(cm[0][0]))
+     f.write("FN: " + str(cm[1][0]))
+     f.write("TP: " + str(cm[1][1]))
+     f.write("FP: " + str(cm[0][1]))
+     f.write("Test Accuracy: " + str( metrics.accuracy_score(y, predictions)))
+     f.close()
+
+def loadEnv(env):
+    with open(env) as env_file:
+        data = json.load(env_file)
+    paths = data["output-paths"]
+    return paths
 
 def makeBaselineFeatures(smali_lst):
     app_features = {}
