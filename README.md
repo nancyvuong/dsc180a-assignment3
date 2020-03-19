@@ -16,3 +16,5 @@ Add to the writeup
 
 # Stretch Goals
 Run on a sample size of 400 (Takes very long + I keep disconnecting to DSMLP even with the priority trick on Piazza/I need a school computer for this)
+#
+Split HW2.py into 2 files
