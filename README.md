@@ -6,7 +6,7 @@ Implement training/testing for AA^T (Done)
 # 
 Implement training/testing for APA^T  (Done)
 #
-Make a env file
+Make a env file (Done)
 #
 Run it on malware samples
 #
