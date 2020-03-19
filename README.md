@@ -1,6 +1,8 @@
 # dsc180a-assignment3
 
-# To Do List:
+# To Do List
+(in no particular order):
+#
 Implement training/testing for AA^T (Done)
 # 
 Implement training/testing for APA^T  (Done)
