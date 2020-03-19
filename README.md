@@ -3,7 +3,7 @@
 # To Do List:
 Implement training/testing for AA^T (Done)
 # 
-Implement training/testing for APA^T  
+Implement training/testing for APA^T  (Done)
 #
 Make a env file
 #
