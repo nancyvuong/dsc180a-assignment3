@@ -2,11 +2,15 @@
 
 # To Do List:
 Implement training/testing for AA^T (Done)
+# 
 Implement training/testing for APA^T  
+#
 Make a env file
-Run it on
+#
+Run it on malware samples
+#
 Make the B matrix + everything that needs it
-Run on malware samples
+#
 Add to the writeup
 
 
