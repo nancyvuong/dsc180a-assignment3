@@ -10,7 +10,7 @@ Make a env file (Done)
 #
 Run it on malware samples
 #
-Make the B matrix + everything that needs it (currently doing but it's taking its sweet time to run on 500K blocks)
+Make the B matrix + everything that needs it (currently doing but it's taking its sweet time to run on 500K blocks) Update: it finished running on datahub (I'm not ready to experience the absolute feeling of hopelessness when disconnecting from the DSMLP servers) so now I'm letting it run on my laptop while I sleep.
 #
 Add to the writeup
 
