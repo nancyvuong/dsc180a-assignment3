@@ -1,0 +1,2 @@
+results to ABA^T: 
+TN: 3FN: 3TP: 1FP: 0Test Accuracy: 0.5714285714285714

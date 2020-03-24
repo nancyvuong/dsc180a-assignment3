@@ -4,6 +4,7 @@ import os
 import sys
 from sklearn.tree import DecisionTreeClassifier
 import random
+import time
 
 sys.path.insert(0, 'src') # add library code to path
 import HW1
@@ -23,7 +24,7 @@ def main(targets):
     if 'data' in targets:
         HW1.main()
     if 'test-project' in targets:
- 
+        beg = time.time() 
         test_flag = 1
         sample_size, categories = HW2.loadConfig("config/test-params.json")
         paths = HW2.loadEnv("config/env.json")
@@ -31,7 +32,6 @@ def main(targets):
         smalis = HW2.prepare_data(test_flag)
         df, xy  = HW2.makeDF(smalis)
         train_df, train_y, test_df, test_y = HW2.splitTrain(df, xy)
-        len(train_y)
         A_train = HW2.makeA(train_df, train_df["apps"].unique(), df.shape[0])
         P_train = HW2.makeP(train_df, df.shape[0])
 
@@ -50,6 +50,22 @@ def main(targets):
         clf = HW2.trainModel(APAT_train, train_y)
         preds = HW2.modelPredict(clf, APATest)
         HW2.getMetrics(preds, test_y, paths["APA^T"], "APA^T")
+
+
+        B_train = HW2.makeB(train_df, df.shape[0])
+        B_test = HW2.makeB(test_df, df.shape[0])
+
+        ABAT_train = A_train.dot(B_train).dot(A_train.T)
+        ABATest = A_test.dot(B_test).dot(A_train.T)
+        clf = HW2.trainModel(ABAT_train, train_y)
+        preds = HW2.modelPredict(clf, ABATest)
+        HW2.getMetrics(preds, test_y, paths["ABA^T"], "ABA^T")
+
+        APBPTAT_train = A_train.dot(P_train).dot(B_train).dot(P_train.T).dot(A_train.T)
+        APBPTATest = A_test.dot(P_test).dot(B_test).dot(P_train.T).dot(A_train.T)
+        clf = HW2.trainModel(APBPTAT_train, train_y)
+        preds = HW2.modelPredict(clf, APBPTATest)
+        HW2.getMetrics(preds, test_y, paths["APBP^TA^T"], "APBP^TA^T")
 
 
 

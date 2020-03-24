@@ -82,12 +82,12 @@ def makeDF(smalis):
                             if lib not in library:
                                 library[lib] = lib_counter
                                 lib_counter+=1
-                            api_features[api] = { "apps": [], "blocks": [], "library": library[lib]}
+                            api_features[api] = { "apps": [], "blox": [], "library": library[lib]}
                             
                         if all_apps[app_name] not in api_features[api]["apps"]:
                             api_features[api]["apps"].append(all_apps[app_name])
-                        if block_counter not in api_features[api]["blocks"]:
-                            api_features[api]["blocks"].append(block_counter)
+                        if block_counter not in api_features[api]["blox"]:
+                            api_features[api]["blox"].append(block_counter)
                 else:
                     block_counter += 1
         if[all_apps[app_name], genre[genre_name]] not in app_genre:
@@ -103,7 +103,7 @@ def splitTrain(df, app_genre):
     y = [i[1] for i in app_genre]
 
     X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y,
-    train_size=0.9, test_size=0.1,
+    train_size=0.7, test_size=0.3,
     random_state = 0)
 
     exploded = df.explode("apps")
@@ -119,17 +119,40 @@ def makeA(df, app_list, num_apis):
     for i in app_list:
         mapper[i] = counter
         counter+=1
-    A = sp.csr_matrix((len(app_list), num_apis), dtype = np.int8)
+    A = sp.lil_matrix((len(app_list), num_apis), dtype = np.int8)
     for i in app_list:
         A[mapper[i], df.loc[df["apps"] == i]["number"]] = 1
-    return A
+    return A.tocsr()
 
 def makeP(df, num_apis):
-    P = sp.csr_matrix((num_apis, num_apis), dtype = np.int8)
+    P = sp.lil_matrix((num_apis, num_apis), dtype = np.int8)
+    groupedlib = df.groupby("library")
     for i in df["library"].unique():
-        mates = df.loc[df["library"] == i].index
-        P[mates, mates] = 1
-    return P
+        lst = list(groupedlib.get_group(i)["number"])
+        #mates = df.loc[df["library"] == i].index
+        #for j in mates:
+        #    P[j, mates] = 1
+        while len(lst) > 0:
+            j = lst.pop()
+            P[j, lst] = 1
+            P[lst, j] = 1
+    return P.tocsr()
+
+def makeB(df, num_apis):
+    exbloded = df.drop("apps", axis = 1)
+    exbloded = exbloded.drop_duplicates("number").explode("blox")
+    exbloded = exbloded[exbloded.groupby('blox').blox.transform(len) > 1]
+    groupedblox = exbloded.groupby("blox")
+    B = sp.lil_matrix((num_apis, num_apis), dtype=np.int8)
+    for i in exbloded["blox"].unique():
+        lst = list(groupedblox.get_group(i)["number"])
+        #lst = exbloded.loc[exbloded["blox"] == i]["number"]
+        #B[lst, lst] = 1
+        while len(lst) > 0:
+            j = lst.pop()
+            B[j, lst] = 1
+            B[lst, j] = 1
+    return B.tocsr()
 
 def trainModel(matrix, y):
     mat = matrix.todense()
