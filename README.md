@@ -13,6 +13,8 @@ Run it on malware samples
 Make the B matrix + everything that needs it (Done + reduced runtime) 
 #
 Add to the writeup
+#
+Investigate the problem with constructing the APA^T and ABA^T matrices + the last one
 
 
 # Stretch Goals
