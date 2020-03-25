@@ -1,6 +1,6 @@
 # dsc180a-assignment3
 #
-Update (3/25) 10PM to 6AM: I was working on trying to raise my accuracy score (I was able to run it on 423 apps so sample size is not the problem) but now I can longer connect to the dsmlp server so I will take that as my cue to go to sleep.
+Update (3/25) 10PM to 6AM: I was working on trying to raise my accuracy score (I was able to run it on 423 apps (in 1 hour) so sample size is not the problem; also calculating training accuracy and that didn't look good) but now I can longer connect to the dsmlp server so I will take that as my cue to go to sleep.
 #
 # To Do List (in no particular order):
 #
